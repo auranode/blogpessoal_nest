@@ -1,8 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from '../src/auth/auth.module';
+import { UsuarioModule } from '../src/usuario/usuario.module';
+import { Usuario } from '../src/usuario/entities/usuario.entity';
+import { Postagem } from '../src/postagem/entities/postagem.entity'; 
+import { Tema } from '../src/tema/entities/tema.entity';
+
 
 describe('Testes dos Módulos Usuario e Auth (e2e)', () => {
   let token: any;
@@ -10,26 +16,34 @@ describe('Testes dos Módulos Usuario e Auth (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        AppModule,
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [__dirname + './../src/**/entities/*.entity.ts'],
-          synchronize: true,
-          dropSchema: true,
-        }),
-      ],
-    }).compile();
+    try {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+          imports: [
+            ConfigModule.forRoot({ isGlobal: true }),
+            TypeOrmModule.forRoot({
+              type: 'sqlite',
+              database: ':memory:',
+              entities: [Usuario, Postagem, Tema], 
+              synchronize: true,
+              dropSchema: true,
+            }),
+            UsuarioModule,
+            AuthModule
+          ],
+        }).compile();
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
-    await app.init();
+        app = moduleFixture.createNestApplication();
+        app.useGlobalPipes(new ValidationPipe());
+        await app.init();
+    } catch (e) {
+        throw e;
+    }
   }, 30000);
 
   afterAll(async () => {
-    await app.close();
+    if (app) {
+        await app.close();
+    }
   });
 
   it('01 - Deve Cadastrar um novo Usuário', async () => {
