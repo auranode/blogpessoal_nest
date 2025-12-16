@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DeleteResult, ILike, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { Tema } from "../entities/tema.entity";
 
 @Injectable()
@@ -13,7 +13,7 @@ export class TemaService {
     async findAll(): Promise<Tema[]> {
         return await this.temaRepository.find({
             relations: {
-                postagens: true
+                postagem: true
             }
         });
     }
@@ -25,7 +25,7 @@ export class TemaService {
                 id
             },
             relations: {
-                postagens: true
+                postagem: true
             }
         });
 
@@ -38,10 +38,10 @@ export class TemaService {
     async findAllByDescricao(descricao: string): Promise<Tema[]> {
         return await this.temaRepository.find({
             where: {
-                descricao: ILike(`%${descricao}%`)
+                descricao: descricao
             },
             relations: {
-                postagens: true
+                postagem: true
             }
         })
     }
@@ -57,11 +57,11 @@ export class TemaService {
         return await this.temaRepository.save(tema);
     }
 
-    async delete(id: number): Promise<DeleteResult> {
+    async delete(id: number): Promise<void> {
 
         await this.findById(id);
 
-        return await this.temaRepository.delete(id);
+        await this.temaRepository.delete(id);
 
     }
 
